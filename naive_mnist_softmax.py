@@ -69,24 +69,31 @@ train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 # launch the model in an interactive session
 sess = tf.InteractiveSession()
 
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # interactive session must explicitly init vars
 tf.initialize_all_variables().run()
 # train 1_000 times
-for _ in range(1000):
+for i in range(2000):
     batch_xs, batch_ys = mnist.train.next_batch(100)
+    if i % 100 == 0:
+        train_accuracy = accuracy.eval(feed_dict={
+            x: batch_xs, y_: batch_ys
+        })
+        print('step %d, training accuracy: %g' % (i, train_accuracy))
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
 # -------------------------------------------------------------------------------
 # lets evaluate good our model is
 # tf.argmax(y, 1) is the label our model thinks is most likely for each input
 # tf.argmax(y_, 1) is the correct label.
-correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+# correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 # gives us a list of booleans, find fraction of correct by casting floats and
 # taking the mean
 # ex [True, False, True, True] -> [1, 0, 1, 1] -> 0.75
 
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # display the accuracy
-print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+print('test accuracy:', sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 # => 0.9205 aka 92.5%
